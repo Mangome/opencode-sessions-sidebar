@@ -2,7 +2,7 @@ English | [简体中文](./README.zh-CN.md)
 
 # opencode-sessions-sidebar
 
-<img width="539" height="196" alt="image" src="https://github.com/user-attachments/assets/2515b538-f134-4dc4-888c-969f302a2044" />
+![Sessions sidebar panel](docs/screenshot.png)
 
 OpenCode TUI plugin that displays the current project's active sessions list in the sidebar.
 
@@ -10,13 +10,13 @@ OpenCode TUI plugin that displays the current project's active sessions list in 
 
 - **Sessions list**: Shows up to 10 most recently updated sessions for the current project (configurable)
 - **Click to switch**: Click any session in the list to navigate to it instantly
-- **Current session indicator**: The active session is marked with a `▶` prefix
+- **Current session indicator**: The active session is marked with a `•` dot in the theme's success color (same as connected MCP servers)
 - **Running indicator**: Sessions currently generating show a braille spinner animation
 - **Project-scoped**: Only shows sessions belonging to the current project directory
 - **Real-time updates**: List refreshes automatically on `session.created` / `session.updated` / `session.deleted` events
 - **Collapsible panel**: Click the header to collapse/expand; state persists across restarts
 - **Slash commands**: `/sessions-refresh` and `/sessions-count` for runtime configuration
-- **Theme adaptive**: Colors auto-desaturate from the current theme for a muted look
+- **Native look**: Borderless panel styled like the built-in MCP / Context sidebar blocks, using theme colors directly; session titles wrap by word
 
 ## Install
 
