@@ -41,13 +41,14 @@ function SessionsPanel(props: {
         limit: 100,
         scope: "project",
         directory: dir,
+        roots: true, // 服务端过滤子会话（SQL 在 LIMIT 之前生效），否则子会话会占满 limit
       })
       if (result.data && Array.isArray(result.data)) {
         const normDir = normalizePath(dir)
         const inDir = normDir
           ? result.data.filter((s) => normalizePath(s.directory) === normDir)
           : result.data
-        const filtered = inDir.filter((s) => !s.parentID)
+        const filtered = inDir.filter((s) => !s.parentID) // 兜底：忽略 roots 的旧服务端
         const sorted = [...filtered].sort(
           (a, b) => (b.time?.updated ?? 0) - (a.time?.updated ?? 0)
         )
@@ -131,7 +132,7 @@ function SessionsPanel(props: {
       <box
         flexDirection="row"
         gap={1}
-        onMouseUp={() => {
+        onMouseDown={() => {
           const n = !open()
           try { props.api.kv.set(`${KV_PREFIX}.open`, n) } catch {}
           setOpen(n)
@@ -140,7 +141,7 @@ function SessionsPanel(props: {
         <text style={{ fg: theme().text }}>{open() ? "\u25BC" : "\u25B6"}</text>
         <text style={{ fg: theme().text }}>
           <b>Sessions</b>
-          <Show when={!open() && sessions().length > 0}>
+          <Show when={sessions().length > 0}>
             <span style={{ fg: theme().textMuted }}> ({sessions().length})</span>
           </Show>
         </text>

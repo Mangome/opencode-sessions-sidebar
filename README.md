@@ -13,8 +13,9 @@ OpenCode TUI plugin that displays the current project's active sessions list in 
 - **Current session indicator**: The active session is marked with a `•` dot in the theme's success color (same as connected MCP servers)
 - **Running indicator**: Sessions currently generating show a braille spinner animation
 - **Project-scoped**: Only shows sessions belonging to the current project directory
+- **Root sessions only**: Subagent (child) sessions are hidden, matching the built-in session list
 - **Real-time updates**: List refreshes automatically on `session.created` / `session.updated` / `session.deleted` events
-- **Collapsible panel**: Click the header to collapse/expand; state persists across restarts
+- **Collapsible panel**: Click the header to collapse/expand; the header shows the session count; state persists across restarts
 - **Slash commands**: `/sessions-refresh` and `/sessions-count` for runtime configuration
 - **Native look**: Borderless panel styled like the built-in MCP / Context sidebar blocks, using theme colors directly; session titles wrap by word
 

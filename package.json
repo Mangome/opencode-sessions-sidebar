@@ -29,7 +29,6 @@
     "build": "tsc && node build.tui.mjs",
     "build:tui": "node build.tui.mjs",
     "typecheck": "tsc --noEmit",
-    "version": "node gen-version.mjs",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -54,6 +53,7 @@
   "devDependencies": {
     "@opencode-ai/plugin": "^1.14.50",
     "@opencode-ai/sdk": "^1.14.50",
+    "@opentui/core": "^0.4.3",
     "esbuild": "^0.25.0",
     "esbuild-plugin-solid": "^0.5.0",
     "tsx": "^4.22.3",
