@@ -2,21 +2,24 @@
 
 import { readFile, writeFile, mkdir, access } from "node:fs/promises"
 import { constants } from "node:fs"
-import { homedir, platform } from "node:os"
-import { join, dirname } from "node:path"
+import { homedir } from "node:os"
+import { join } from "node:path"
 
+// opencode v2 的全局配置目录在所有平台都是 ~/.config/opencode（除非设了 XDG_CONFIG_HOME），
+// 插件清单键是 opencode.json(c) 里的 plugins。
 const PLUGIN_SPEC = "opencode-sessions-sidebar"
 
 function configDir() {
-  if (platform() === "win32") {
-    return join(process.env.APPDATA ?? join(homedir(), "AppData", "Roaming"), "opencode")
-  }
   return join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "opencode")
 }
 
 async function exists(p) {
-  try { await access(p, constants.F_OK); return true }
-  catch { return false }
+  try {
+    await access(p, constants.F_OK)
+    return true
+  } catch {
+    return false
+  }
 }
 
 async function readJSONC(p) {
@@ -25,16 +28,10 @@ async function readJSONC(p) {
   return JSON.parse(stripped)
 }
 
-function formatJSONC(obj) {
-  return JSON.stringify(obj, null, 2) + "\n"
-}
-
 function mergePlugin(existing, spec) {
-  const plugins = existing.plugin ?? []
-  if (plugins.some((p) => (typeof p === "string" ? p : p[0]) === spec)) {
-    return false
-  }
-  existing.plugin = [...plugins, spec]
+  const plugins = existing.plugins ?? []
+  if (plugins.some((p) => (typeof p === "string" ? p : p.package) === spec)) return false
+  existing.plugins = [...plugins, spec]
   return true
 }
 
@@ -42,48 +39,28 @@ async function main() {
   const dir = configDir()
   await mkdir(dir, { recursive: true })
 
-  const tuiPath = join(dir, "tui.jsonc")
-  let tuiChanged = false
+  const jsonc = join(dir, "opencode.jsonc")
+  const json = join(dir, "opencode.json")
+  const target = (await exists(jsonc)) ? jsonc : json
 
-  if (await exists(tuiPath)) {
-    const cfg = await readJSONC(tuiPath)
-    tuiChanged = mergePlugin(cfg, PLUGIN_SPEC)
-    if (tuiChanged) {
-      await writeFile(tuiPath, formatJSONC(cfg))
-      console.log(`[opencode-sessions-sidebar] Added to ${tuiPath}`)
-    } else {
-      console.log(`[opencode-sessions-sidebar] Already in ${tuiPath}`)
+  if (await exists(target)) {
+    const cfg = await readJSONC(target)
+    if (!mergePlugin(cfg, PLUGIN_SPEC)) {
+      console.log(`[opencode-sessions-sidebar] Already in ${target}`)
+      return
     }
+    await writeFile(target, JSON.stringify(cfg, null, 2) + "\n")
+    console.log(`[opencode-sessions-sidebar] Added to ${target}`)
   } else {
-    const cfg = {
-      $schema: "https://opencode.ai/tui.json",
-      plugin: [PLUGIN_SPEC],
-    }
-    await writeFile(tuiPath, formatJSONC(cfg))
-    console.log(`[opencode-sessions-sidebar] Created ${tuiPath}`)
-    tuiChanged = true
+    await writeFile(target, JSON.stringify({ $schema: "https://opencode.ai/config.json", plugins: [PLUGIN_SPEC] }, null, 2) + "\n")
+    console.log(`[opencode-sessions-sidebar] Created ${target}`)
   }
 
-  const ocPath = join(dir, "opencode.jsonc")
-  let ocChanged = false
-
-  if (await exists(ocPath)) {
-    const cfg = await readJSONC(ocPath)
-    ocChanged = mergePlugin(cfg, PLUGIN_SPEC)
-    if (ocChanged) {
-      await writeFile(ocPath, formatJSONC(cfg))
-      console.log(`[opencode-sessions-sidebar] Also added to ${ocPath}`)
-    }
-  }
-
-  if (tuiChanged || ocChanged) {
-    console.log("\nDone! Restart OpenCode to see the Sessions sidebar panel.")
-  } else {
-    console.log("\nAlready installed. Restart OpenCode if you haven't yet.")
-  }
+  console.log("\nDone! Restart OpenCode to see the Sessions sidebar panel.")
 }
 
 main().catch((err) => {
   console.error("Install failed:", err.message)
+  console.error("You can also run: opencode plugin add " + PLUGIN_SPEC)
   process.exit(1)
 })
